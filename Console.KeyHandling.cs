@@ -68,7 +68,7 @@ namespace Visyn.Wpf.Console
                         break;
                 }   
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
             }
