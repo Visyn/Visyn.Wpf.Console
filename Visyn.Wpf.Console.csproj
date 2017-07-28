@@ -84,7 +84,6 @@
     <Compile Include="IConsole.cs" />
     <Compile Include="Terminal.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="JetBrains\JetBrains.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

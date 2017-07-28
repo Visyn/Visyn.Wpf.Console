@@ -12,7 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
-using Visyn.Wpf.Console.JetBrains;
+using Visyn.Public.JetBrains;
 
 namespace Visyn.Wpf.Console
 {
