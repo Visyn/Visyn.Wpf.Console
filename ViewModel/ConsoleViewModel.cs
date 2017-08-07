@@ -12,22 +12,26 @@ namespace Visyn.Wpf.Console.ViewModel
 {
     public class ConsoleViewModel : INotifyPropertyChanged, IOutputDeviceMultiline
     {
+        public int MaxCount { get; set; }
+
         protected readonly IOutputDevice Output;
         private ICommand _executeItemCommand;
         private readonly ObservableCollectionExtended<string> _items;
         protected Dispatcher UiDispatcher { get; }
 
-        public ConsoleViewModel() : this(Dispatcher.CurrentDispatcher)
-        {
-        }
+        //public ConsoleViewModel(int maxSize = 10000) : this(Dispatcher.CurrentDispatcher)
+        //{
+        //    MaxCount = maxSize;
+        //}
 
-        public ConsoleViewModel(Dispatcher dispatcher)
+        public ConsoleViewModel(int maxSize = 10000, Dispatcher dispatcher=null)
         {
-            UiDispatcher = dispatcher;
+            MaxCount = maxSize;
+            UiDispatcher = dispatcher ?? Dispatcher.CurrentDispatcher;
             _items = new ObservableCollectionExtended<string>();
             Output = new BackgroundOutputDevice(Dispatcher.CurrentDispatcher, new OutputToCollection(_items), null);
 
-            _executeItemCommand = new RelayCommand<string>(AddItem, x => true);
+            _executeItemCommand = new RelayCommand<string>(Add, x => true);
         }
 
         public ObservableCollection<string> Items => _items;
@@ -39,10 +43,6 @@ namespace Visyn.Wpf.Console.ViewModel
             set { SetPropertyAndNotify(ref _executeItemCommand, value, nameof(ExecuteItemCommand)); }
         }
 
-        private void AddItem(string item)
-        {
-            _items.Add(item);
-        }
 
         public void Clear()
         {
@@ -54,14 +54,24 @@ namespace Visyn.Wpf.Console.ViewModel
         // TODO: Should implement partial line add here...
         public void Write(string text)
         {
-            if (UiDispatcher.CheckAccess()) _items.Add(text);
-            else UiDispatcher.Invoke(new Action(() => _items.Add(text)));
+            Add(text);
+            //if (UiDispatcher.CheckAccess()) _items.Add(text);
+            //else UiDispatcher.Invoke(new Action(() => _items.Add(text)));
         }
 
         public void WriteLine(string line)
         {
-            if (UiDispatcher.CheckAccess()) _items.Add(line);
-            else UiDispatcher.Invoke(new Action(() => _items.Add(line)));
+            Add(line);
+            //if (UiDispatcher.CheckAccess())
+            //{
+            //    _items.Add(line);
+            //    if (_items.Count > 100)
+            //    {
+            //        var toRemove = _items.FirstItems(10);
+            //        _items.RemoveItems(toRemove);
+            //    }
+            //}
+            //else UiDispatcher.Invoke(new Action(() => _items.Add(line)));
         }
 
         public void Write(Func<string> func)
@@ -71,9 +81,35 @@ namespace Visyn.Wpf.Console.ViewModel
 
         public void Write(IEnumerable<string> lines)
         {
-            if (UiDispatcher.CheckAccess()) _items.AddRange(lines);
-            else UiDispatcher.Invoke(new Action(() => _items.AddRange(lines)));
+            Add(lines);
+            //if (UiDispatcher.CheckAccess()) _items.AddRange(lines);
+            //else UiDispatcher.Invoke(new Action(() => _items.AddRange(lines)));
         }
+
+        protected void Add(string line)
+        {
+            if (!UiDispatcher.CheckAccess())
+            {
+                UiDispatcher.Invoke(() => Add(line));
+                return;
+            }
+            _items.Add(line);
+        }
+
+        protected void Add(IEnumerable<string> lines)
+        {
+            if (!UiDispatcher.CheckAccess())
+            {
+                UiDispatcher.Invoke(() => Add(lines));
+                return;
+            }
+            _items.AddRange(lines);
+            if (_items.Count <= MaxCount) return;
+            var toRemove = _items.FirstItems(MaxCount/10);
+            _items.RemoveItems(toRemove);
+        }
+
+
 
         #endregion
 

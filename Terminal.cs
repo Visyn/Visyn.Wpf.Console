@@ -411,7 +411,7 @@ namespace Visyn.Wpf.Console
                     {
                         var line = reader.ReadLine();
                     
-                        newInlines.Add(new Run(line) { Foreground = GetForegroundColor(x) });
+                        newInlines.Add(new Run(line) { Foreground = GetForegroundColor(x) } );
                         newInlines.Add(new LineBreak());
                     }
                     return newInlines;
