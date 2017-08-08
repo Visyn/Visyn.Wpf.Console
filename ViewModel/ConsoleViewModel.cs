@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -7,16 +8,17 @@ using System.Windows.Threading;
 using Visyn.Core.Collection;
 using Visyn.Core.IO;
 using Visyn.Public.Io;
+using Visyn.Public.Log;
 
 namespace Visyn.Wpf.Console.ViewModel
 {
-    public class ConsoleViewModel : INotifyPropertyChanged, IOutputDeviceMultiline
+    public class ConsoleViewModel : INotifyPropertyChanged, IOutputDevice<SeverityLevel>//, IOutputDeviceMultiline
     {
         public int MaxCount { get; set; }
 
         protected readonly IOutputDevice Output;
         private ICommand _executeItemCommand;
-        private readonly ObservableCollectionExtended<string> _items;
+        private readonly ObservableCollectionExtended<object> _items;
         protected Dispatcher UiDispatcher { get; }
 
         //public ConsoleViewModel(int maxSize = 10000) : this(Dispatcher.CurrentDispatcher)
@@ -28,13 +30,13 @@ namespace Visyn.Wpf.Console.ViewModel
         {
             MaxCount = maxSize;
             UiDispatcher = dispatcher ?? Dispatcher.CurrentDispatcher;
-            _items = new ObservableCollectionExtended<string>();
-            Output = new BackgroundOutputDevice(Dispatcher.CurrentDispatcher, new OutputToCollection(_items), null);
+            _items = new ObservableCollectionExtended<object>();
+            Output = new BackgroundOutputDevice(Dispatcher.CurrentDispatcher, new OutputToCollection<object>(_items), null);
 
             _executeItemCommand = new RelayCommand<string>(Add, x => true);
         }
 
-        public ObservableCollection<string> Items => _items;
+        public ObservableCollection<object> Items => _items;
 
         public ICommand ExecuteItemCommand
         {
@@ -55,23 +57,11 @@ namespace Visyn.Wpf.Console.ViewModel
         public void Write(string text)
         {
             Add(text);
-            //if (UiDispatcher.CheckAccess()) _items.Add(text);
-            //else UiDispatcher.Invoke(new Action(() => _items.Add(text)));
         }
 
         public void WriteLine(string line)
         {
             Add(line);
-            //if (UiDispatcher.CheckAccess())
-            //{
-            //    _items.Add(line);
-            //    if (_items.Count > 100)
-            //    {
-            //        var toRemove = _items.FirstItems(10);
-            //        _items.RemoveItems(toRemove);
-            //    }
-            //}
-            //else UiDispatcher.Invoke(new Action(() => _items.Add(line)));
         }
 
         public void Write(Func<string> func)
@@ -81,12 +71,28 @@ namespace Visyn.Wpf.Console.ViewModel
 
         public void Write(IEnumerable<string> lines)
         {
-            Add(lines);
-            //if (UiDispatcher.CheckAccess()) _items.AddRange(lines);
-            //else UiDispatcher.Invoke(new Action(() => _items.AddRange(lines)));
+            AddLines(lines);
         }
 
-        protected void Add(string line)
+        #region Implementation of IOutputDevice<SeverityLevel>
+
+        public void Write(string text, SeverityLevel type)
+        {
+            Add(new MessageWithSeverityLevel(text,type));
+        }
+
+        public void WriteLine(string line, SeverityLevel type)
+        {
+            Add(new MessageWithSeverityLevel(line,type));
+        }
+
+        public void Write(Func<string> func, SeverityLevel type)
+        {
+            Write(func(),type);
+        }
+
+        #endregion
+        protected void Add(object line)
         {
             if (!UiDispatcher.CheckAccess())
             {
@@ -96,11 +102,11 @@ namespace Visyn.Wpf.Console.ViewModel
             _items.Add(line);
         }
 
-        protected void Add(IEnumerable<string> lines)
+        protected void AddLines(IEnumerable lines)
         {
             if (!UiDispatcher.CheckAccess())
             {
-                UiDispatcher.Invoke(() => Add(lines));
+                UiDispatcher.Invoke(() => AddLines(lines));
                 return;
             }
             _items.AddRange(lines);
@@ -129,5 +135,7 @@ namespace Visyn.Wpf.Console.ViewModel
 
             return true;
         }
+
+
     }
 }

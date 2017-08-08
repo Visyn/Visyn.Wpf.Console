@@ -13,6 +13,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Visyn.Public.JetBrains;
+using Visyn.Public.Types;
 
 namespace Visyn.Wpf.Console
 {
@@ -467,10 +468,11 @@ namespace Visyn.Wpf.Console
         [NotNull]
         private string ExtractValue(object item)
         {
+            if (item == null) return string.Empty;
             var displayPath = ItemDisplayPath;
             if (displayPath == null)
             {
-                return item?.ToString() ?? string.Empty;
+                return (item as string ?? (item as IValue<string>)?.Value) ?? item.ToString();
             }
 
             if (_displayPathProperty == null)
