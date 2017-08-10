@@ -110,13 +110,13 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Visyn.Public\Lib\Visyn.Public.csproj">
+      <Project>{aba4963b-56ba-4b42-8c2a-17be811e5f8e}</Project>
+      <Name>Visyn.Public</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Visyn.Core\Visyn.Core.csproj">
       <Project>{9C2A8976-44C2-47E1-A56A-D21C8794DEF0}</Project>
       <Name>Visyn.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Visyn.Public\Visyn.Public.csproj">
-      <Project>{aba4963b-56ba-4b42-8c2a-17be811e5f8e}</Project>
-      <Name>Visyn.Public</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
