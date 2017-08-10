@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Visyn.Core.Automation;
 using Visyn.Core.Collection;
 using Visyn.Core.IO;
 using Visyn.Public.Io;
@@ -31,7 +33,9 @@ namespace Visyn.Wpf.Console.ViewModel
             MaxCount = maxSize;
             UiDispatcher = dispatcher ?? Dispatcher.CurrentDispatcher;
             _items = new ObservableCollectionExtended<object>();
-            Output = new BackgroundOutputDevice(Dispatcher.CurrentDispatcher, new OutputToCollection<object>(_items), null);
+            
+            Output = new BackgroundOutputDeviceMultiline(Dispatcher.CurrentDispatcher, new OutputToCollection<object>(_items),
+                (t) => t + $"\t(queued {((BackgroundOutputDevice)Output).Count})");
 
             _executeItemCommand = new RelayCommand<string>(Add, x => true);
         }
@@ -96,7 +100,11 @@ namespace Visyn.Wpf.Console.ViewModel
         {
             if (!UiDispatcher.CheckAccess())
             {
-                UiDispatcher.Invoke(() => Add(line));
+                var text = line as string;
+                if(text != null) Output.WriteLine(text);
+                else
+                    UiDispatcher.Invoke(() => Add(line));
+                //   UiDispatcher.Invoke(() => Add(line));
                 return;
             }
             _items.Add(line);
@@ -106,7 +114,8 @@ namespace Visyn.Wpf.Console.ViewModel
         {
             if (!UiDispatcher.CheckAccess())
             {
-                UiDispatcher.Invoke(() => AddLines(lines));
+                Output.Write(from object line in lines select line.ToString());
+        //        UiDispatcher.Invoke(() => AddLines(lines));
                 return;
             }
             _items.AddRange(lines);
