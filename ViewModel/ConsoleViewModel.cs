@@ -30,7 +30,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Visyn.Core.Automation;
+using Visyn.Collection;
 using Visyn.Core.Collection;
 using Visyn.Core.IO;
 using Visyn.Public.Io;
