@@ -12,8 +12,8 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
-using Visyn.Public.JetBrains;
-using Visyn.Public.Types;
+using Visyn.JetBrains;
+using Visyn.Types;
 
 namespace Visyn.Wpf.Console
 {

@@ -9,7 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Threading;
-using Visyn.Public.JetBrains;
+using Visyn.JetBrains;
 
 namespace Visyn.Wpf.Console
 {

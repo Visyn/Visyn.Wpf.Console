@@ -31,10 +31,8 @@ using System.Linq;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Visyn.Collection;
-using Visyn.Core.Collection;
-using Visyn.Core.IO;
-using Visyn.Public.Io;
-using Visyn.Public.Log;
+using Visyn.Io;
+using Visyn.Log;
 
 namespace Visyn.Wpf.Console.ViewModel
 {
@@ -47,10 +45,6 @@ namespace Visyn.Wpf.Console.ViewModel
         private readonly ObservableCollectionExtended<object> _items;
         protected Dispatcher UiDispatcher { get; }
 
-        //public ConsoleViewModel(int maxSize = 10000) : this(Dispatcher.CurrentDispatcher)
-        //{
-        //    MaxCount = maxSize;
-        //}
 
         public ConsoleViewModel(int maxSize = 10000, Dispatcher dispatcher=null)
         {
@@ -58,8 +52,8 @@ namespace Visyn.Wpf.Console.ViewModel
             UiDispatcher = dispatcher ?? Dispatcher.CurrentDispatcher;
             _items = new ObservableCollectionExtended<object>();
             
-            Output = new BackgroundOutputDeviceMultiline(Dispatcher.CurrentDispatcher, new OutputToCollection<object>(_items),
-                (t) => t + $"\t(queued {((BackgroundOutputDevice)Output).Count})");
+            Output = new BackgroundOutputDeviceMultiline(Dispatcher.CurrentDispatcher, new OutputToCollection<object>(_items, _items.AddRange),
+                (t) => t + $"\t(queued {((BackgroundOutputDevice)Output)?.Count})");
 
             _executeItemCommand = new RelayCommand<string>(Add, x => true);
         }
