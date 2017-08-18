@@ -31,12 +31,13 @@ using System.Linq;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Visyn.Collection;
+using Visyn.Exceptions;
 using Visyn.Io;
 using Visyn.Log;
 
 namespace Visyn.Wpf.Console.ViewModel
 {
-    public class ConsoleViewModel : INotifyPropertyChanged, IOutputDevice<SeverityLevel>//, IOutputDeviceMultiline
+    public class ConsoleViewModel : INotifyPropertyChanged, IOutputDevice<SeverityLevel>, IExceptionHandler//, IOutputDeviceMultiline
     {
         public int MaxCount { get; set; }
 
@@ -73,6 +74,22 @@ namespace Visyn.Wpf.Console.ViewModel
             _items.Clear();
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected virtual bool SetPropertyAndNotify<T>(ref T existingValue, T newValue, string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(existingValue, newValue)) return false;
+
+            existingValue = newValue;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+            return true;
+        }
         #region  IOutputDevice
 
         // TODO: Should implement partial line add here...
@@ -100,17 +117,17 @@ namespace Visyn.Wpf.Console.ViewModel
 
         public void Write(string text, SeverityLevel type)
         {
-            Add(new MessageWithSeverityLevel(text,type));
+            Add(new MessageWithSeverityLevel(text, type));
         }
 
         public void WriteLine(string line, SeverityLevel type)
         {
-            Add(new MessageWithSeverityLevel(line,type));
+            Add(new MessageWithSeverityLevel(line, type));
         }
 
         public void Write(Func<string> func, SeverityLevel type)
         {
-            Write(func(),type);
+            Write(func(), type);
         }
 
         #endregion
@@ -119,7 +136,7 @@ namespace Visyn.Wpf.Console.ViewModel
             if (!UiDispatcher.CheckAccess())
             {
                 var text = line as string;
-                if(text != null) Output.WriteLine(text);
+                if (text != null) Output.WriteLine(text);
                 else
                     UiDispatcher.Invoke(() => Add(line));
                 //   UiDispatcher.Invoke(() => Add(line));
@@ -133,36 +150,26 @@ namespace Visyn.Wpf.Console.ViewModel
             if (!UiDispatcher.CheckAccess())
             {
                 Output.Write(from object line in lines select line.ToString());
-        //        UiDispatcher.Invoke(() => AddLines(lines));
+                //        UiDispatcher.Invoke(() => AddLines(lines));
                 return;
             }
             _items.AddRange(lines);
             if (_items.Count <= MaxCount) return;
-            var toRemove = _items.FirstItems(MaxCount/10);
+            var toRemove = _items.FirstItems(MaxCount / 10);
             _items.RemoveItems(toRemove);
         }
 
 
 
         #endregion
+        #region Implementation of IExceptionHandler
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName = null)
+        public bool HandleException(object sender, Exception exception)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        protected virtual bool SetPropertyAndNotify<T>(ref T existingValue, T newValue, string propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(existingValue, newValue)) return false;
-
-            existingValue = newValue;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
+            WriteLine(exception.Message,SeverityLevel.Error);
             return true;
         }
 
-
+        #endregion
     }
 }
