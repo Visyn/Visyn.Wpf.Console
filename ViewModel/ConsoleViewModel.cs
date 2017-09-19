@@ -28,35 +28,55 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Visyn.Collection;
 using Visyn.Exceptions;
 using Visyn.Io;
-using Visyn.Log;
 
 namespace Visyn.Wpf.Console.ViewModel
 {
-    public class ConsoleViewModel : INotifyPropertyChanged, IOutputDevice<SeverityLevel>, IExceptionHandler//, IOutputDeviceMultiline
+    public class ConsoleViewModel : INotifyPropertyChanged, IExceptionHandler, IOutputDeviceMultiline
     {
         public int MaxCount { get; set; }
 
-        protected readonly IOutputDevice Output;
         private ICommand _executeItemCommand;
-        private readonly ObservableCollectionExtended<object> _items;
+        protected readonly ObservableCollectionExtended<object> _items;
+    
         protected Dispatcher UiDispatcher { get; }
+        protected readonly BackgroundOutputDeviceMultiline Output;
 
-
-        public ConsoleViewModel(int maxSize = 10000, Dispatcher dispatcher=null)
+        protected ConsoleViewModel(int maxSize, Dispatcher dispatcher , Func<ObservableCollectionExtended<object>, BackgroundOutputDeviceMultiline> output)
         {
             MaxCount = maxSize;
             UiDispatcher = dispatcher ?? Dispatcher.CurrentDispatcher;
             _items = new ObservableCollectionExtended<object>();
-            
-            Output = new BackgroundOutputDeviceMultiline(Dispatcher.CurrentDispatcher, new OutputToCollection<object>(_items, _items.AddRange),
-                (t) => t + $"\t(queued {((BackgroundOutputDevice)Output)?.Count})");
 
             _executeItemCommand = new RelayCommand<string>(Add, x => true);
+
+            Output = output.Invoke(_items);
+        }
+
+        public ConsoleViewModel(int maxSize = 10000, Dispatcher dispatcher=null) 
+            : this(maxSize,dispatcher, CreateOutputDevice()) 
+        {
+        }
+
+        public static Func<ObservableCollectionExtended<object>,BackgroundOutputDeviceMultiline> CreateOutputDevice()
+        {
+            return ((collection) =>
+            {
+                var outputDevice = new BackgroundOutputDeviceMultiline(Dispatcher.CurrentDispatcher,
+                    new OutputToCollection<object>(collection, collection.AddRange), null);
+
+                outputDevice.TaskStartedAction = (d) =>
+                {
+                    Thread.CurrentThread.Name = $"{outputDevice.Name} {Thread.CurrentThread.ManagedThreadId}";
+                    Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
+                };
+                return outputDevice;
+            });
         }
 
         public ObservableCollection<object> Items => _items;
@@ -90,6 +110,7 @@ namespace Visyn.Wpf.Console.ViewModel
 
             return true;
         }
+
         #region  IOutputDevice
 
         // TODO: Should implement partial line add here...
@@ -98,75 +119,33 @@ namespace Visyn.Wpf.Console.ViewModel
             Add(text);
         }
 
-        public void WriteLine(string line)
-        {
-            Add(line);
-        }
+        public void WriteLine(string line) => Add(line);
 
-        public void Write(Func<string> func)
-        {
-            Write(func());
-        }
+        public void Write(Func<string> func) => Write(func());
 
-        public void Write(IEnumerable<string> lines)
-        {
-            AddLines(lines);
-        }
+        public void Write(IEnumerable<string> lines) => AddLines(lines);
 
-        #region Implementation of IOutputDevice<SeverityLevel>
 
-        public void Write(string text, SeverityLevel type)
+        protected void Add(string text)
         {
-            Add(new MessageWithSeverityLevel(text, type));
-        }
-
-        public void WriteLine(string line, SeverityLevel type)
-        {
-            Add(new MessageWithSeverityLevel(line, type));
-        }
-
-        public void Write(Func<string> func, SeverityLevel type)
-        {
-            Write(func(), type);
-        }
-
-        #endregion
-        protected void Add(object line)
-        {
-            if (!UiDispatcher.CheckAccess())
+            if (text != null)
             {
-                var text = line as string;
-                if (text != null) Output.WriteLine(text);
-                else
-                    UiDispatcher.Invoke(() => Add(line));
-                //   UiDispatcher.Invoke(() => Add(line));
-                return;
+                Output.WriteLine(text);
             }
-            _items.Add(line);
         }
 
         protected void AddLines(IEnumerable lines)
         {
-            if (!UiDispatcher.CheckAccess())
-            {
-                Output.Write(from object line in lines select line.ToString());
-                //        UiDispatcher.Invoke(() => AddLines(lines));
-                return;
-            }
-            _items.AddRange(lines);
-            if (_items.Count <= MaxCount) return;
-            var toRemove = _items.FirstItems(MaxCount / 10);
-            _items.RemoveItems(toRemove);
+            Output.Write(from object line in lines select line.ToString());
         }
 
-
-
         #endregion
+
         #region Implementation of IExceptionHandler
 
-        public bool HandleException(object sender, Exception exception)
+        public virtual bool HandleException(object sender, Exception exception)
         {
-            WriteLine(exception.Message,SeverityLevel.Error);
+            WriteLine($"{sender?.GetType().Name} {exception.GetType().Name}: {exception.Message}");
             return true;
         }
 

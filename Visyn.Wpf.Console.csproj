@@ -93,6 +93,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="ViewModel\ConsoleViewModel.cs" />
+    <Compile Include="ViewModel\ConsoleWithSeverityViewModel.cs" />
     <Compile Include="ViewModel\IRelayCommand.cs" />
     <Compile Include="ViewModel\RelayCommand.cs" />
     <Compile Include="WriteOnlyConsole.cs" />

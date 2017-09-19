@@ -1,3 +1,27 @@
+#region Copyright (c) 2015-2017 Visyn
+// The MIT License(MIT)
+// 
+// Copyright(c) 2015-2017 Visyn
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+#endregion
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,6 +36,8 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Threading;
+using Visyn.Collection;
 using Visyn.JetBrains;
 using Visyn.Types;
 
@@ -93,6 +119,13 @@ namespace Visyn.Wpf.Console
             typeof(int),
             typeof(Terminal),
             new PropertyMetadata(10, OnItemHeightChanged));
+
+        public static readonly DependencyProperty MaxItemsProperty = DependencyProperty.Register(nameof(MaxItems),
+            typeof(int),
+            typeof(Terminal),
+            new PropertyMetadata(-1, OnMaxItemsChanged));
+
+
 
         private readonly Paragraph _paragraph;
         private readonly List<string> _buffer = new List<string>();
@@ -196,7 +229,11 @@ namespace Visyn.Wpf.Console
             get { return (int)GetValue(ItemHeightProperty); }
             set { SetValue(ItemHeightProperty, value); }
         }
-
+        public int MaxItems
+        {
+            get { return (int)GetValue(MaxItemsProperty); }
+            set { SetValue(MaxItemsProperty, value); }
+        }
         /// <summary>
         /// The margin around the bound items.
         /// </summary>
@@ -225,8 +262,8 @@ namespace Visyn.Wpf.Console
         private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs args)
         {
             if (args.NewValue == args.OldValue) return;
-
-            ((Terminal)d).HandleItemsSourceChanged((IEnumerable)args.NewValue);
+            var source = args.NewValue as IEnumerable;
+            ((Terminal)d).HandleItemsSourceChanged(source);
         }
 
         private static void OnPromptChanged(DependencyObject d, DependencyPropertyChangedEventArgs args)
@@ -248,6 +285,16 @@ namespace Visyn.Wpf.Console
             if (args.NewValue == args.OldValue) return;
 
             ((Terminal)d)._paragraph.LineHeight = (int)args.NewValue;
+        }
+
+        private static void OnMaxItemsChanged(DependencyObject d, DependencyPropertyChangedEventArgs args)
+        {
+            if (args.NewValue == args.OldValue) return;
+            if (args.NewValue is int)
+            {
+                int maxItems = (int)(args.NewValue);
+                ((Terminal) d).MaxItems = maxItems;
+            }
         }
 
         private static void OnDisplayPathChanged(DependencyObject d, DependencyPropertyChangedEventArgs args)
@@ -297,6 +344,7 @@ namespace Visyn.Wpf.Console
             args.Handled = true;
         }
 
+
         private void HandleItemsSourceChanged(IEnumerable items)
         {
             if (items == null)
@@ -333,6 +381,39 @@ namespace Visyn.Wpf.Console
                 {
                     ReplaceItems(ItemsSource.Cast<object>().ToArray());
                 }
+                LimitItems();
+            }
+        }
+
+        private bool removeItems = false;
+        private void LimitItems()
+        {
+            var sourceCollection = ItemsSource as IList;
+            if (MaxItems > 0 && !removeItems && sourceCollection?.Count > MaxItems)
+            {
+                removeItems = true;
+                Dispatcher.InvokeAsync(() =>
+                {
+                    if (MaxItems > 0)
+                    {
+                        int countToRemove = sourceCollection.Count - (int) (MaxItems * 0.9);
+                        if (countToRemove > 0)
+                        {
+                            var observable = ItemsSource as ObservableCollectionExtended<object>;
+                            if (observable != null)
+                            {
+                                var itemsToRemove = observable.FirstItems(countToRemove);
+                                observable.RemoveItems(itemsToRemove);
+                            }
+                            else
+                            {
+                                var itemsToRemove = sourceCollection.FirstItems(countToRemove);
+                                sourceCollection.RemoveItems(itemsToRemove);
+                            }
+                        }
+                    }
+                    removeItems = false;
+                }, DispatcherPriority.Background);
             }
         }
 
@@ -423,6 +504,8 @@ namespace Visyn.Wpf.Console
             AddPrompt();
             _paragraph.Inlines.Add(new Run(command));
             CaretPosition = CaretPosition.DocumentEnd;
+            
+            LimitItems();
         }
 
         private Brush GetForegroundColor(object item)
@@ -435,7 +518,7 @@ namespace Visyn.Wpf.Console
         }
 
         // ReSharper disable once ParameterTypeCanBeEnumerable.Local
-        private void RemoveItems(object[] items)
+        private void RemoveItems(IEnumerable items)
         {
             foreach (var item in items)
             {
