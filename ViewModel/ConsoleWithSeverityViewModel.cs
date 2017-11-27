@@ -92,5 +92,15 @@ namespace Visyn.Wpf.Console.ViewModel
         }
 
         #endregion
+
+        #region Overrides of ConsoleViewModel
+
+        public override void Dispose()
+        {
+            OutputSeverity.Dispose();
+            base.Dispose();
+        }
+
+        #endregion
     }
 }

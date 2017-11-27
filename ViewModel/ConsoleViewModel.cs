@@ -37,7 +37,7 @@ using Visyn.Io;
 
 namespace Visyn.Wpf.Console.ViewModel
 {
-    public class ConsoleViewModel : INotifyPropertyChanged, IExceptionHandler, IOutputDeviceMultiline
+    public class ConsoleViewModel : INotifyPropertyChanged, IExceptionHandler, IOutputDeviceMultiline, IDisposable
     {
         public int MaxCount { get; set; }
 
@@ -147,6 +147,16 @@ namespace Visyn.Wpf.Console.ViewModel
         {
             WriteLine($"{sender?.GetType().Name} {exception.GetType().Name}: {exception.Message}");
             return true;
+        }
+
+        #endregion
+
+        #region IDisposable
+
+        public virtual void Dispose()
+        {
+            _items?.ClearWithoutNotify();
+            Output?.Dispose();
         }
 
         #endregion
