@@ -42,6 +42,8 @@ namespace Visyn.Wpf.Console.ViewModel
         public int MaxCount { get; set; }
 
         private ICommand _executeItemCommand;
+        public ICommand ClearCommand { get; set; }
+
         protected readonly ObservableCollectionExtended<object> _items;
     
         protected Dispatcher UiDispatcher { get; }
@@ -54,7 +56,7 @@ namespace Visyn.Wpf.Console.ViewModel
             _items = new ObservableCollectionExtended<object>();
 
             _executeItemCommand = new RelayCommand<string>(Add, x => true);
-
+            ClearCommand = new RelayCommand<object>(Clear, x => true);
             Output = output.Invoke(_items);
         }
 
@@ -93,6 +95,7 @@ namespace Visyn.Wpf.Console.ViewModel
         {
             _items.Clear();
         }
+        protected void Clear(object param) => Clear();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -136,7 +139,10 @@ namespace Visyn.Wpf.Console.ViewModel
 
         protected void AddLines(IEnumerable lines)
         {
-            Output.Write(from object line in lines select line.ToString());
+            foreach(var line in lines)
+            {
+                Output.Write(line?.ToString() ?? "");
+            }
         }
 
         #endregion
