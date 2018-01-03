@@ -1,7 +1,7 @@
-﻿#region Copyright (c) 2015-2017 Visyn
+﻿#region Copyright (c) 2015-2018 Visyn
 // The MIT License(MIT)
 // 
-// Copyright(c) 2015-2017 Visyn
+// Copyright (c) 2015-2018 Visyn
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,36 @@
 // SOFTWARE.
 #endregion
 
-namespace Visyn.Wpf.Console
+using System;
+using System.Windows.Input;
+
+namespace Visyn.Wpf.Console.ViewModel
 {
-#if false
-    public partial class Terminal : IOutputDevice
+    internal class RelayCommand<T> : IRelayCommand<T>
     {
-        public void Write(string text)
+        private readonly Action<T> _execute;
+        private readonly Func<T, bool> _canExecute;
+        
+        public RelayCommand(Action<T> execute, Func<T, bool> canExecute)
         {
-            throw new NotImplementedException();
+            _execute = execute;
+            _canExecute = canExecute;
         }
 
-        public void WriteLine(string line)
+        public void Execute(object parameter)
         {
-            throw new NotImplementedException();
+            if (CanExecute(parameter))
+            {
+                _execute((T)parameter);    
+            }
         }
 
-        public void Write(Func<string> func)
+        public bool CanExecute(object parameter) => _canExecute == null || _canExecute((T)parameter);
+
+        public event EventHandler CanExecuteChanged
         {
-            throw new NotImplementedException();
+            add { CommandManager.RequerySuggested += value; }
+            remove  { CommandManager.RequerySuggested -= value; }
         }
     }
-#endif
 }

@@ -1,7 +1,7 @@
-﻿#region Copyright (c) 2015-2017 Visyn
+﻿#region Copyright (c) 2015-2018 Visyn
 // The MIT License(MIT)
 // 
-// Copyright(c) 2015-2017 Visyn
+// Copyright (c) 2015-2018 Visyn
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -48,5 +48,5 @@ using System.Reflection;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.1.1")]
-[assembly: AssemblyFileVersion("2.0.1.1")]
+[assembly: AssemblyVersion("2.1.1.10")]
+[assembly: AssemblyFileVersion("2.1.1.10")]

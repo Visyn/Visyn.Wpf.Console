@@ -1,7 +1,7 @@
-#region Copyright (c) 2015-2017 Visyn
+#region Copyright (c) 2015-2018 Visyn
 // The MIT License(MIT)
 // 
-// Copyright(c) 2015-2017 Visyn
+// Copyright (c) 2015-2018 Visyn
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
