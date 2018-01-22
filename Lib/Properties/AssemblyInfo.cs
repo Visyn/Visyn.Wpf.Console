@@ -30,13 +30,17 @@ using System.Reflection;
 // associated with an assembly.
 [assembly: AssemblyTitle("Visyn.Wpf.Console")]
 [assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Visyn")]
 [assembly: AssemblyProduct("Visyn.Wpf.Console")]
-[assembly: AssemblyCopyright("Copyright ©  2016-2017")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCopyright("Copyright © 2015-2018")]
+[assembly: AssemblyTrademark("Visyn")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("en")]
+#if DEBUG
+[assembly: AssemblyConfiguration("DEBUG")]
+#else
+[assembly: AssemblyConfiguration("RELEASE")]
+#endif
 
 // Version information for an assembly consists of the following four values:
 //
