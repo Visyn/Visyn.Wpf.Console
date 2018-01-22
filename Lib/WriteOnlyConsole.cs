@@ -95,6 +95,7 @@ namespace Visyn.Wpf.Console
 
             ((WriteOnlyConsole)d).HandlePromptChanged((string)args.NewValue);
         }
+
         /// <summary>
         /// The terminal prompt to be displayed.
         /// </summary>
