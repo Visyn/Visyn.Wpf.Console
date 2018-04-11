@@ -26,6 +26,11 @@ using System.Windows.Input;
 
 namespace Visyn.Wpf.Console.ViewModel
 {
+    /// <summary>
+    /// Interface IRelayCommand
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <seealso cref="System.Windows.Input.ICommand" />
     internal interface IRelayCommand<T> : ICommand
     {
     }

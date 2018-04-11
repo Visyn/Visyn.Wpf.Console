@@ -27,17 +27,37 @@ using System.Windows.Input;
 
 namespace Visyn.Wpf.Console.ViewModel
 {
+    /// <summary>
+    /// Class RelayCommand.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <seealso cref="Visyn.Wpf.Console.ViewModel.IRelayCommand{T}" />
     internal class RelayCommand<T> : IRelayCommand<T>
     {
+        /// <summary>
+        /// The execute action
+        /// </summary>
         private readonly Action<T> _execute;
+        /// <summary>
+        /// The can execute function
+        /// </summary>
         private readonly Func<T, bool> _canExecute;
-        
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RelayCommand{T}"/> class.
+        /// </summary>
+        /// <param name="execute">The execute.</param>
+        /// <param name="canExecute">The can execute.</param>
         public RelayCommand(Action<T> execute, Func<T, bool> canExecute)
         {
             _execute = execute;
             _canExecute = canExecute;
         }
 
+        /// <summary>
+        /// Executes the specified parameter.
+        /// </summary>
+        /// <param name="parameter">The parameter.</param>
         public void Execute(object parameter)
         {
             if (CanExecute(parameter))
@@ -46,8 +66,16 @@ namespace Visyn.Wpf.Console.ViewModel
             }
         }
 
+        /// <summary>
+        /// Determines whether this instance can execute the specified parameter.
+        /// </summary>
+        /// <param name="parameter">The parameter.</param>
+        /// <returns><c>true</c> if this instance can execute the specified parameter; otherwise, <c>false</c>.</returns>
         public bool CanExecute(object parameter) => _canExecute == null || _canExecute((T)parameter);
 
+        /// <summary>
+        /// Occurs when [can execute changed].
+        /// </summary>
         public event EventHandler CanExecuteChanged
         {
             add { CommandManager.RequerySuggested += value; }
