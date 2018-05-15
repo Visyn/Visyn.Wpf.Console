@@ -32,7 +32,7 @@ namespace Visyn.Wpf.Console.ViewModel
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <seealso cref="Visyn.Wpf.Console.ViewModel.IRelayCommand{T}" />
-    internal class RelayCommand<T> : IRelayCommand<T>
+    public class RelayCommand<T> : IRelayCommand<T>
     {
         /// <summary>
         /// The execute action

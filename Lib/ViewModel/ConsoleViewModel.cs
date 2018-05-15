@@ -94,6 +94,7 @@ namespace Visyn.Wpf.Console.ViewModel
         {
             _items.Clear();
         }
+
         protected void Clear(object param) => Clear();
 
         public event PropertyChangedEventHandler PropertyChanged;

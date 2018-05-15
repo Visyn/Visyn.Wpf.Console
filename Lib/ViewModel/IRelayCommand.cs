@@ -31,7 +31,7 @@ namespace Visyn.Wpf.Console.ViewModel
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <seealso cref="System.Windows.Input.ICommand" />
-    internal interface IRelayCommand<T> : ICommand
+    public interface IRelayCommand<T> : ICommand
     {
     }
 }
