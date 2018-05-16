@@ -23,6 +23,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Threading;
 using Visyn.Collection;
@@ -45,8 +46,9 @@ namespace Visyn.Wpf.Console.ViewModel
         {
             return ((collection) =>
             {
+                var addRangeAction = new Action<IEnumerable<object>>((i) => collection.AddRange(i));
                 var outputDevice = new BackgroundOutputDeviceWithSeverity(Dispatcher.CurrentDispatcher,
-                    new OutputToCollectionSeverity(collection, collection.AddRange), null);
+                    new OutputToCollectionSeverity(collection, addRangeAction), null);
 
                 outputDevice.TaskStartedAction = (d) =>
                 {

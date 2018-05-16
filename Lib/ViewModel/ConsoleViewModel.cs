@@ -137,11 +137,18 @@ namespace Visyn.Wpf.Console.ViewModel
             }
         }
 
-        protected void AddLines(IEnumerable lines)
+        protected void AddLines(IEnumerable<string> lines)
         {
-            foreach(var line in lines)
+            if(Output is IOutputDeviceMultiline)
             {
-                Output.Write(line?.ToString() ?? "");
+                Output.Write(lines);
+            }
+            else
+            {
+                foreach (var line in lines)
+                {
+                    Output.Write(line?.ToString() ?? "");
+                }
             }
         }
 
