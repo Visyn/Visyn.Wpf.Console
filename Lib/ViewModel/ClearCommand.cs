@@ -27,7 +27,7 @@ using System;
 namespace Visyn.Wpf.Console.ViewModel
 {
     /// <summary>
-    /// Class ClearCommand : IRelayCommand{ConsoleViewModel}
+    /// Class ClearCommand./
     /// </summary>
     /// <seealso cref="Visyn.Wpf.Console.ViewModel.IRelayCommand{Visyn.Wpf.Console.ViewModel.ConsoleViewModel}" />
     public class ClearCommand : IRelayCommand<ConsoleViewModel>
